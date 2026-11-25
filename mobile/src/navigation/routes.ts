@@ -1,0 +1,17 @@
+export const routes = {
+  welcome: '/',
+  account: '/account',
+  academicProfile: '/academic-profile',
+  home: '/home',
+  scholarships: '/(tabs)/scholarships',
+  research: '/(tabs)/research',
+  supervisors: '/(tabs)/supervisors',
+  tracker: '/(tabs)/tracker',
+  scholarshipDetail: '/scholarship/[id]',
+  researchDetail: '/research/[id]',
+  savedResearch: '/saved-research',
+  profile: '/profile',
+  settings: '/settings',
+  noMatches: '/no-matches',
+  connectionError: '/connection-error',
+} as const;
