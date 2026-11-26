@@ -50,22 +50,26 @@ the app's `EXPO_PUBLIC_API_URL` to the server's reachable address, such as
 `http://localhost:3000` for a simulator or `http://<computer-lan-ip>:3000` for a
 physical device.
 
-Seed the opportunity records currently used in the mobile app (safe to rerun;
-records are upserted by slug):
+Seed Pakistan-focused scholarship and research programme records for the mobile
+app (safe to rerun; records are upserted by slug):
 
 ```sh
 npm run seed
 ```
 
-The mobile app retrieves scholarship and research lists and details from
-MongoDB through `GET /scholarships`, `GET /scholarships/:slug`,
-`GET /research`, and `GET /research/:slug`.
+The mobile app retrieves Pakistan-based scholarship and research records from
+MongoDB through `GET /scholarships`, `GET /scholarships/:slug`, `GET /research`,
+and `GET /research/:slug`. The API excludes records that are not marked as
+Pakistan-based.
 
 ## Endpoints
 
 - `GET /health` — health check.
 - `POST /users/register` — JSON `{ "name", "email", "password" }`; creates an
-  account and returns `{ "token", "user" }`.
+  account and optional `academicProfile` fields (`qualification`,
+  `fieldOfStudy`), then returns
+  `{ "token", "user" }`. User and academic profile records are created together
+  in a MongoDB transaction.
 - `POST /users/login` — JSON `{ "email", "password" }`; returns `{ "token",
   "user" }`, matching the mobile API response type.
 - `GET /users/me` — requires `Authorization: Bearer <token>`; returns the

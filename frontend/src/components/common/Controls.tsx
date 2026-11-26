@@ -7,17 +7,26 @@ export function Button({
   onPress,
   variant = 'primary',
   style,
+  disabled = false,
 }: {
   label: string;
   onPress: () => void;
   variant?: 'primary' | 'outline';
   style?: object;
+  disabled?: boolean;
 }) {
   return (
     <Pressable
       onPress={onPress}
-      style={[styles.button, variant === 'outline' ? styles.outlineButton : styles.primaryButton, style]}
+      disabled={disabled}
+      style={[
+        styles.button,
+        variant === 'outline' ? styles.outlineButton : styles.primaryButton,
+        disabled && styles.buttonDisabled,
+        style,
+      ]}
       accessibilityRole="button"
+      accessibilityState={{ disabled }}
     >
       <Text style={[styles.buttonText, variant === 'outline' && styles.outlineButtonText]}>{label}</Text>
     </Pressable>
@@ -76,7 +85,8 @@ export function Field({
         onChangeText={onChangeText ?? setText}
         secureTextEntry={secureTextEntry}
         keyboardType={keyboardType}
-        autoCapitalize={keyboardType === 'email-address' ? 'none' : 'sentences'}
+        autoCapitalize={keyboardType === 'email-address' || secureTextEntry ? 'none' : 'sentences'}
+        autoCorrect={!secureTextEntry}
         style={styles.input}
       />
     </View>
@@ -89,6 +99,7 @@ const styles = StyleSheet.create({
   outlineButton: { borderWidth: 1, borderColor: colors.border, backgroundColor: colors.white },
   buttonText: { color: colors.white, fontSize: 16, fontWeight: '600', textAlign: 'center' },
   outlineButtonText: { color: colors.blue, fontWeight: '600' },
+  buttonDisabled: { opacity: 0.55 },
   textButton: { minHeight: 42, paddingHorizontal: 10, alignItems: 'center', justifyContent: 'center' },
   textButtonLabel: { color: colors.blue, fontSize: 15, fontWeight: '600' },
   chip: { flex: 1, minHeight: 48, borderRadius: 25, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.white, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 12 },

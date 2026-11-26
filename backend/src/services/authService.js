@@ -7,16 +7,13 @@ const scryptAsync = promisify(scrypt);
 function createAuthService(userRepository) {
   const sessions = new Map();
 
-  async function register({ email, password, name }) {
+  async function register({ email, password, name, academicProfile }) {
     const salt = randomBytes(16).toString('hex');
     const passwordHash = (await scryptAsync(password, salt, 64)).toString('hex');
-    const user = await userRepository.create({
-      email,
-      name,
-      salt,
-      passwordHash,
-    });
-    return user;
+    return userRepository.create(
+      { email, name, salt, passwordHash },
+      academicProfile,
+    );
   }
 
   async function authenticate(email, password) {
@@ -36,7 +33,7 @@ function createAuthService(userRepository) {
   function createSession(user) {
     const token = randomBytes(32).toString('hex');
     sessions.set(token, {
-      userId: user.id,
+      userId: user.id ?? user._id.toString(),
       expiresAt: Date.now() + tokenTtlMs,
     });
     return token;
@@ -53,15 +50,26 @@ function createAuthService(userRepository) {
     return userRepository.findById(session.userId);
   }
 
-  return { register, authenticate, createSession, getUserForToken };
+  function getAcademicProfile(user) {
+    return userRepository.findAcademicProfile(user._id ?? user.id);
+  }
+
+  return { register, authenticate, createSession, getUserForToken, getAcademicProfile };
 }
 
-function toPublicProfile(user) {
-  return {
+function toPublicProfile(user, academicProfile) {
+  const profile = {
     id: user.id ?? user._id.toString(),
     email: user.email,
     name: user.name,
   };
+  if (academicProfile) {
+    profile.academicProfile = {
+      qualification: academicProfile.qualification ?? academicProfile.degreeLevel ?? '',
+      fieldOfStudy: academicProfile.fieldOfStudy ?? '',
+    };
+  }
+  return profile;
 }
 
 module.exports = { createAuthService, toPublicProfile };

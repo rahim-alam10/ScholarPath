@@ -6,7 +6,7 @@ const scholarshipSchema = new mongoose.Schema(
     title: { type: String, required: true, trim: true, maxlength: 200 },
     provider: { type: String, required: true, trim: true, maxlength: 200 },
     description: { type: String, trim: true, maxlength: 10000 },
-    country: { type: String, trim: true, maxlength: 100 },
+    country: { type: String, enum: ['Pakistan'], default: 'Pakistan', required: true },
     degreeLevels: [{ type: String, trim: true, maxlength: 100 }],
     fieldsOfStudy: [{ type: String, trim: true, maxlength: 150 }],
     funding: { type: String, trim: true, maxlength: 500 },

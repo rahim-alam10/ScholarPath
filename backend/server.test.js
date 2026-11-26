@@ -3,6 +3,9 @@ const { randomUUID } = require('node:crypto');
 const mongoose = require('mongoose');
 const { after, before, test } = require('node:test');
 const { createServer: createApiServer } = require('./src/app');
+const { createOpportunityRepository } = require('./src/repositories/opportunityRepository');
+const { scholarships: seededScholarships, researchOpportunities: seededResearch } =
+  require('./src/data/opportunities');
 const {
   AcademicProfile,
   Application,
@@ -10,13 +13,14 @@ const {
   SavedOpportunity,
   Scholarship,
 } = require('./src/models');
-const { toPublicProfile } = require('./src/services/authService');
+const { createAuthService, toPublicProfile } = require('./src/services/authService');
 
 let server;
 let baseUrl;
 
 function createTestUserRepository() {
   const users = new Map();
+  const academicProfiles = new Map();
   return {
     async findByEmail(email) {
       return [...users.values()].find((user) => user.email === email) ?? null;
@@ -24,13 +28,20 @@ function createTestUserRepository() {
     async findById(id) {
       return users.get(id) ?? null;
     },
-    async create(data) {
+    async create(data, academicProfile) {
       if ([...users.values()].some((user) => user.email === data.email)) {
         return null;
       }
       const user = { id: randomUUID(), ...data };
       users.set(user.id, user);
-      return user;
+      const savedAcademicProfile = academicProfile
+        ? { user: user.id, ...academicProfile }
+        : null;
+      if (savedAcademicProfile) academicProfiles.set(user.id, savedAcademicProfile);
+      return { user, academicProfile: savedAcademicProfile };
+    },
+    async findAcademicProfile(userId) {
+      return academicProfiles.get(userId) ?? null;
     },
   };
 }
@@ -38,28 +49,25 @@ function createTestUserRepository() {
 function createTestOpportunityRepository() {
   const scholarships = [{
     _id: { toString: () => 'scholarship-id' },
-    slug: 'daad-master-studies-cs',
-    title: 'DAAD Master Studies in Computer Science',
-    provider: 'DAAD Germany',
-    country: 'Germany',
-    funding: 'Fully funded',
-    deadline: '2026-11-15T00:00:00.000Z',
-    degreeLevels: ['Master’s'],
-    fieldsOfStudy: ['Computer Science'],
-    eligibilityCriteria: ['Minimum CGPA 3.50'],
+    slug: 'hec-need-based-scholarship',
+    title: 'HEC Need-Based Scholarship Programme',
+    provider: 'Higher Education Commission of Pakistan',
+    country: 'Pakistan',
+    funding: 'Tuition coverage and monthly stipend',
+    degreeLevels: ['Undergraduate'],
+    fieldsOfStudy: [],
+    eligibilityCriteria: ['Financial need assessed by the university'],
   }];
   const research = [{
     _id: { toString: () => 'research-id' },
-    slug: 'ai-accessible-healthcare',
-    title: 'AI for accessible healthcare',
-    institution: 'Northbridge University',
-    country: 'Germany',
-    kind: 'Research assistantship',
-    funding: 'Paid · €1,200 per month',
-    topics: ['Machine learning', 'Health informatics'],
-    deadline: '2026-12-15T00:00:00.000Z',
-    description: 'Build accessible research tools.',
-    supervisorName: 'Dr. Maya Chen',
+    slug: 'hec-national-research-program-universities',
+    title: 'National Research Program for Universities (NRPU)',
+    institution: 'Higher Education Commission of Pakistan',
+    country: 'Pakistan',
+    kind: 'University research grant',
+    funding: 'Competitive grant awarded to the host university',
+    topics: ['Science', 'Technology'],
+    description: 'Pakistani university research teams may include graduate students.',
   }];
   return {
     async listScholarships() {
@@ -106,6 +114,14 @@ test('registration, login, and authenticated profile work', async () => {
       name: 'Alex Morgan',
       email: 'alex@example.com',
       password: 'secure-password',
+      academicProfile: {
+        qualification: 'Bachelor of Science',
+        fieldOfStudy: 'Computer Science',
+        cgpa: 3.75,
+        englishTest: 'IELTS',
+        englishScore: '7.5',
+        targetCountries: ['Germany', 'Canada'],
+      },
     }),
   });
   assert.equal(registration.status, 201);
@@ -114,8 +130,16 @@ test('registration, login, and authenticated profile work', async () => {
     id: registrationResult.user.id,
     email: 'alex@example.com',
     name: 'Alex Morgan',
+    academicProfile: {
+      qualification: 'Bachelor of Science',
+      fieldOfStudy: 'Computer Science',
+    },
   });
   assert.equal(typeof registrationResult.token, 'string');
+  assert.deepEqual(registrationResult.user.academicProfile, {
+    qualification: 'Bachelor of Science',
+    fieldOfStudy: 'Computer Science',
+  });
 
   const duplicate = await fetch(`${baseUrl}/users/register`, {
     method: 'POST',
@@ -135,6 +159,7 @@ test('registration, login, and authenticated profile work', async () => {
   });
   assert.equal(login.status, 200);
   const loginResult = await login.json();
+  assert.deepEqual(loginResult.user.academicProfile, registrationResult.user.academicProfile);
 
   const profile = await fetch(`${baseUrl}/users/me`, {
     headers: { Authorization: `Bearer ${loginResult.token}` },
@@ -153,6 +178,61 @@ test('rejects invalid credentials and unauthenticated profile access', async () 
 
   const profile = await fetch(`${baseUrl}/users/me`);
   assert.equal(profile.status, 401);
+
+  const legacyPasswordLogin = await fetch(`${baseUrl}/users/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: 'unknown@example.com', password: 'password' }),
+  });
+  assert.equal(legacyPasswordLogin.status, 401);
+});
+
+test('registration requires a strong password but login does not impose new password rules', async () => {
+  const weakRegistration = await fetch(`${baseUrl}/users/register`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      name: 'Weak Password',
+      email: 'weak@example.com',
+      password: 'password',
+    }),
+  });
+
+  assert.equal(weakRegistration.status, 400);
+  assert.deepEqual(await weakRegistration.json(), {
+    error: 'Password must include at least one special character.',
+  });
+
+  const shortRegistration = await fetch(`${baseUrl}/users/register`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      name: 'Short Password',
+      email: 'short@example.com',
+      password: 'Ab1!',
+    }),
+  });
+  assert.equal(shortRegistration.status, 400);
+  assert.deepEqual(await shortRegistration.json(), {
+    error: 'Password must be at least 8 characters.',
+  });
+});
+
+test('registration rejects academic profiles with invalid qualification types', async () => {
+  const response = await fetch(`${baseUrl}/users/register`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      name: 'Invalid Qualification',
+      email: 'invalid-qualification@example.com',
+      password: 'good-pass!',
+      academicProfile: { qualification: 123 },
+    }),
+  });
+  assert.equal(response.status, 400);
+  assert.deepEqual(await response.json(), {
+    error: 'qualification must be a string.',
+  });
 });
 
 test('rejects invalid request bodies with a client error', async () => {
@@ -168,14 +248,23 @@ test('rejects invalid request bodies with a client error', async () => {
 });
 
 test('Mongoose models enforce core app data constraints', () => {
-  const profile = new AcademicProfile({ user: new mongoose.Types.ObjectId(), cgpa: 4.5 });
-  assert.equal(profile.validateSync().errors.cgpa.kind, 'max');
+  assert.equal(AcademicProfile.schema.path('cgpa'), undefined);
+  assert.equal(AcademicProfile.schema.path('englishTest'), undefined);
+  assert.equal(AcademicProfile.schema.path('englishScore'), undefined);
+  assert.equal(AcademicProfile.schema.path('targetCountries'), undefined);
 
   const scholarship = new Scholarship({ title: 'Scholarship' });
   assert.ok(scholarship.validateSync().errors.provider);
 
   const research = new ResearchOpportunity({ title: 'Research project' });
   assert.ok(research.validateSync().errors.institution);
+
+  const internationalScholarship = new Scholarship({
+    title: 'Outside Pakistan',
+    provider: 'Test provider',
+    country: 'Germany',
+  });
+  assert.equal(internationalScholarship.validateSync().errors.country.kind, 'enum');
 
   const application = new Application({
     user: new mongoose.Types.ObjectId(),
@@ -201,28 +290,91 @@ test('public profile serializes MongoDB document identifiers', () => {
   );
 });
 
+test('login sessions use MongoDB identifiers from lean user records', async () => {
+  const id = new mongoose.Types.ObjectId();
+  const user = { _id: id, email: 'alex@example.com', name: 'Alex' };
+  const authService = createAuthService({
+    async findById(userId) {
+      assert.equal(userId, id.toString());
+      return user;
+    },
+    async findAcademicProfile() {
+      return null;
+    },
+  });
+
+  const token = authService.createSession(user);
+  assert.equal(await authService.getUserForToken(token), user);
+});
+
 test('opportunity APIs return database-backed items by slug', async () => {
   const scholarshipList = await fetch(`${baseUrl}/scholarships`);
   assert.equal(scholarshipList.status, 200);
   const scholarships = await scholarshipList.json();
   assert.equal(scholarships.length, 1);
   assert.equal(scholarships[0].id, 'scholarship-id');
-  assert.equal(scholarships[0].slug, 'daad-master-studies-cs');
+  assert.equal(scholarships[0].slug, 'hec-need-based-scholarship');
+  assert.equal(scholarships[0].country, 'Pakistan');
   assert.equal('_id' in scholarships[0], false);
 
-  const scholarshipDetail = await fetch(`${baseUrl}/scholarships/daad-master-studies-cs`);
+  const scholarshipDetail = await fetch(`${baseUrl}/scholarships/hec-need-based-scholarship`);
   assert.equal(scholarshipDetail.status, 200);
-  assert.equal((await scholarshipDetail.json()).provider, 'DAAD Germany');
+  assert.equal((await scholarshipDetail.json()).provider, 'Higher Education Commission of Pakistan');
 
   const researchList = await fetch(`${baseUrl}/research`);
   assert.equal(researchList.status, 200);
   const opportunities = await researchList.json();
-  assert.equal(opportunities[0].title, 'AI for accessible healthcare');
+  assert.equal(opportunities[0].title, 'National Research Program for Universities (NRPU)');
+  assert.equal(opportunities[0].country, 'Pakistan');
 
-  const researchDetail = await fetch(`${baseUrl}/research/ai-accessible-healthcare`);
+  const researchDetail = await fetch(`${baseUrl}/research/hec-national-research-program-universities`);
   assert.equal(researchDetail.status, 200);
-  assert.equal((await researchDetail.json()).supervisorName, 'Dr. Maya Chen');
+  assert.equal((await researchDetail.json()).country, 'Pakistan');
 
   const missing = await fetch(`${baseUrl}/research/not-in-database`);
   assert.equal(missing.status, 404);
+});
+
+test('opportunity repository restricts lists and details to Pakistan', async () => {
+  const filters = [];
+  const model = {
+    find(filter) {
+      filters.push(filter);
+      return {
+        sort() { return this; },
+        lean() { return this; },
+        exec: async () => [],
+      };
+    },
+    findOne(filter) {
+      filters.push(filter);
+      return {
+        lean() { return this; },
+        exec: async () => null,
+      };
+    },
+  };
+  const repository = createOpportunityRepository({
+    ScholarshipModel: model,
+    ResearchOpportunityModel: model,
+  });
+
+  await repository.listScholarships();
+  await repository.findScholarship('outside-pakistan');
+  await repository.listResearch();
+  await repository.findResearch('outside-pakistan');
+
+  assert.equal(filters.length, 4);
+  for (const filter of filters) {
+    assert.equal(filter.country.test('Pakistan'), true);
+    assert.equal(filter.country.test('Germany'), false);
+  }
+});
+
+test('seeded scholarship and research records are Pakistan-based', () => {
+  assert.ok(seededScholarships.length > 0);
+  assert.ok(seededResearch.length > 0);
+  assert.ok([...seededScholarships, ...seededResearch].every(
+    (opportunity) => opportunity.country === 'Pakistan',
+  ));
 });

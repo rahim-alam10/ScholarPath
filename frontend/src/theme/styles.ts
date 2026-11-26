@@ -40,6 +40,8 @@ export const styles = StyleSheet.create({
   profileCountries: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   profileCountryChip: { flex: 0, minHeight: 40, paddingHorizontal: 16 },
   formError: { color: colors.red, fontSize: 14, lineHeight: 20 },
+  accountHint: { color: colors.muted, fontSize: 13, lineHeight: 19, marginTop: -8 },
+  accountSectionTitle: { color: colors.ink, fontSize: 20, lineHeight: 27, fontWeight: '700', marginTop: 16, marginBottom: 8 },
   completionTrack: { height: 8, borderRadius: 5, backgroundColor: '#E1E7F0', overflow: 'hidden' },
   completionFill: { height: '100%', width: '85%', backgroundColor: '#18A34A', borderRadius: 5 },
   toggleRow: { minHeight: 58, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 14 },

@@ -1,6 +1,7 @@
+import { useState } from 'react';
 import { Text, View } from 'react-native';
 import { router } from 'expo-router';
-import { Button, Chip } from '../../components/common/Controls';
+import { Button } from '../../components/common/Controls';
 import { MainLayout } from '../../components/common/ScreenLayout';
 import { InfoBlock } from '../../components/specific/OpportunityCards';
 import { useAppState } from '../../hooks/useAppState';
@@ -9,7 +10,8 @@ import { routes } from '../../navigation/routes';
 import { styles } from '../../theme/styles';
 
 export default function ProfileScreen() {
-  const { profile } = useAppState();
+  const { profile, authenticatedUser, signOut } = useAppState();
+  const [signOutError, setSignOutError] = useState('');
   const initials = profile.fullName
     .trim()
     .split(/\s+/)
@@ -19,12 +21,8 @@ export default function ProfileScreen() {
   const fields = [
     profile.fullName,
     profile.email,
-    profile.cgpa,
-    profile.degreeLevel,
+    profile.qualification,
     profile.fieldOfStudy,
-    profile.englishTest,
-    profile.englishScore,
-    profile.targetCountries.length ? 'countries' : '',
   ];
   const completeness = Math.round(
     (fields.filter((value) => value.trim().length > 0).length / fields.length) * 100,
@@ -65,41 +63,34 @@ export default function ProfileScreen() {
       </View>
 
       <View style={styles.softCard}>
-        <Text style={styles.sectionTitle}>Academic profile</Text>
-        <InfoBlock label="CGPA" value={display(profile.cgpa)} />
-        <InfoBlock label="Degree level" value={display(profile.degreeLevel)} />
+        <Text style={styles.sectionTitle}>Academic qualifications</Text>
+        <InfoBlock label="Qualification" value={display(profile.qualification)} />
         <InfoBlock label="Field of study" value={display(profile.fieldOfStudy)} />
-        <InfoBlock
-          label="English test"
-          value={[profile.englishTest, profile.englishScore].filter(Boolean).join(' · ') || 'Not added yet'}
-        />
-      </View>
-
-      <View style={styles.softCard}>
-        <Text style={styles.sectionTitle}>Target countries</Text>
-        {profile.targetCountries.length ? (
-          <View style={styles.profileCountries}>
-            {profile.targetCountries.map((country) => (
-              <Chip key={country} label={country} style={styles.profileCountryChip} />
-            ))}
-          </View>
-        ) : (
-          <Text style={styles.mutedText}>Add countries you’re interested in to personalize your matches.</Text>
-        )}
-        <Button
-          label="Update academic profile"
-          variant="outline"
-          onPress={() => router.push({
-            pathname: routes.academicProfile,
-            params: { from: 'profile' },
-          })}
-        />
       </View>
 
       <View style={styles.card}>
         <Text style={styles.sectionTitle}>Account</Text>
         <Text style={styles.mutedText}>Manage your app preferences and reminders.</Text>
         <Button label="Settings" variant="outline" onPress={() => router.push(routes.settings)} />
+        {authenticatedUser ? (
+          <Button
+            label="Log out"
+            variant="outline"
+            onPress={() => {
+              setSignOutError('');
+              void signOut()
+                .then(() => router.replace(routes.welcome))
+                .catch((error: unknown) => {
+                  setSignOutError(
+                    error instanceof Error ? error.message : 'Unable to log out. Please try again.',
+                  );
+                });
+            }}
+          />
+        ) : null}
+        {signOutError ? (
+          <Text accessibilityRole="alert" style={styles.formError}>{signOutError}</Text>
+        ) : null}
       </View>
     </MainLayout>
   );

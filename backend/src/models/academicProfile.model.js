@@ -8,12 +8,8 @@ const academicProfileSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
-    cgpa: { type: Number, min: 0, max: 4 },
-    degreeLevel: { type: String, trim: true, maxlength: 100 },
+    qualification: { type: String, trim: true, maxlength: 100 },
     fieldOfStudy: { type: String, trim: true, maxlength: 150 },
-    englishTest: { type: String, trim: true, maxlength: 50 },
-    englishScore: { type: String, trim: true, maxlength: 50 },
-    targetCountries: [{ type: String, trim: true, maxlength: 100 }],
   },
   { timestamps: true },
 );

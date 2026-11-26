@@ -39,7 +39,7 @@ export default function ScholarshipDetailScreen() {
             <DetailRow label="Provider:" value={scholarship.provider} />
             <DetailRow label="Deadline:" value={formatDate(scholarship.deadline)} />
             <DetailRow label="Funding:" value={scholarship.funding ?? 'Not specified'} />
-            <DetailRow label="Country:" value={scholarship.country ?? 'Not specified'} />
+            <DetailRow label="Location:" value="Pakistan" />
           </View>
           {scholarship.description ? (
             <>

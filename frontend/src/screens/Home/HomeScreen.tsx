@@ -14,7 +14,7 @@ import { MainLayout } from '../../components/common/ScreenLayout';
 import { homeStyles } from './Home.styles';
 
 export default function HomeScreen() {
-  const { query, setQuery } = useAppState();
+  const { query, setQuery, profile } = useAppState();
   const { data: scholarships, loading: scholarshipsLoading, error: scholarshipsError } =
     useApiData<Scholarship[]>('/scholarships');
   const { data: research, loading: researchLoading, error: researchError } =
@@ -22,11 +22,13 @@ export default function HomeScreen() {
 
   return (
     <MainLayout title="Home">
-      <Text style={homeStyles.greeting}>Welcome back, Alex!</Text>
+      <Text style={homeStyles.greeting}>
+        Welcome back, {profile.fullName.trim().split(/\s+/)[0] || 'there'}!
+      </Text>
       <TextInput
         value={query}
         onChangeText={setQuery}
-        placeholder="Search scholarships by name, country, or keyword..."
+        placeholder="Search scholarships by name, field, or location..."
         placeholderTextColor={colors.muted}
         style={styles.searchInput}
         multiline
@@ -51,7 +53,7 @@ export default function HomeScreen() {
       {scholarships?.slice(0, 1).map((scholarship) => (
         <ScholarshipCard
           key={scholarship.id}
-          title={`${scholarship.title} - ${scholarship.country ?? 'International'}`}
+          title={`${scholarship.title} - Pakistan`}
           subtitle={`Deadline: ${formatDate(scholarship.deadline)}`}
           compact
           onPress={() => router.push({

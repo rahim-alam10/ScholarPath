@@ -26,7 +26,7 @@ export default function ScholarshipsScreen() {
         <ScholarshipCard
           key={scholarship.id}
           title={scholarship.title}
-          subtitle={`${scholarship.country ?? 'International'}  •  ${scholarship.funding ?? 'Funding details unavailable'}  •  Deadline: ${formatDate(scholarship.deadline)}`}
+          subtitle={`Pakistan  •  ${scholarship.funding ?? 'Funding details unavailable'}  •  Deadline: ${formatDate(scholarship.deadline)}`}
           onPress={() => router.push({
             pathname: routes.scholarshipDetail,
             params: { id: scholarship.slug ?? scholarship.id },

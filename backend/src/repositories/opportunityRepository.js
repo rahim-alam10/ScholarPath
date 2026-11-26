@@ -3,28 +3,37 @@ const ResearchOpportunity = require('../models/researchOpportunity.model');
 const Scholarship = require('../models/scholarship.model');
 
 function findByIdOrSlug(Model, identifier) {
-  const filter = mongoose.isValidObjectId(identifier)
+  const identifierFilter = mongoose.isValidObjectId(identifier)
     ? { _id: identifier }
     : { slug: identifier.toLowerCase() };
-  return Model.findOne(filter).lean().exec();
+  return Model.findOne({ ...identifierFilter, country: /^Pakistan$/i }).lean().exec();
 }
 
-function createOpportunityRepository() {
+function createOpportunityRepository({
+  ScholarshipModel = Scholarship,
+  ResearchOpportunityModel = ResearchOpportunity,
+} = {}) {
   return {
     listScholarships() {
-      return Scholarship.find().sort({ deadline: 1, title: 1 }).lean().exec();
+      return ScholarshipModel.find({ country: /^Pakistan$/i })
+        .sort({ deadline: 1, title: 1 })
+        .lean()
+        .exec();
     },
 
     findScholarship(slug) {
-      return findByIdOrSlug(Scholarship, slug);
+      return findByIdOrSlug(ScholarshipModel, slug);
     },
 
     listResearch() {
-      return ResearchOpportunity.find().sort({ deadline: 1, title: 1 }).lean().exec();
+      return ResearchOpportunityModel.find({ country: /^Pakistan$/i })
+        .sort({ deadline: 1, title: 1 })
+        .lean()
+        .exec();
     },
 
     findResearch(slug) {
-      return findByIdOrSlug(ResearchOpportunity, slug);
+      return findByIdOrSlug(ResearchOpportunityModel, slug);
     },
   };
 }

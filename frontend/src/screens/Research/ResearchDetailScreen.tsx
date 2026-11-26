@@ -35,7 +35,7 @@ export default function ResearchDetailScreen() {
         <>
           <Text style={styles.heading}>{project.title}</Text>
           <Text style={styles.bodyStrong}>{project.institution}</Text>
-          <Text style={styles.mutedText}>{project.country}</Text>
+          <Text style={styles.mutedText}>Pakistan</Text>
           <View style={[styles.card, styles.projectInfo]}>
             <InfoBlock label="Opportunity type" value={project.kind ?? 'Not specified'} />
             <InfoBlock label="Funding" value={project.funding ?? 'Not specified'} />

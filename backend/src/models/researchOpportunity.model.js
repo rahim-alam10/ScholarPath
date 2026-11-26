@@ -5,7 +5,7 @@ const researchOpportunitySchema = new mongoose.Schema(
     slug: { type: String, unique: true, sparse: true, lowercase: true, trim: true },
     title: { type: String, required: true, trim: true, maxlength: 200 },
     institution: { type: String, required: true, trim: true, maxlength: 200 },
-    country: { type: String, trim: true, maxlength: 100 },
+    country: { type: String, enum: ['Pakistan'], default: 'Pakistan', required: true },
     kind: { type: String, trim: true, maxlength: 100 },
     funding: { type: String, trim: true, maxlength: 500 },
     topics: [{ type: String, trim: true, maxlength: 150 }],

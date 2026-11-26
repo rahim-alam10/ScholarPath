@@ -10,7 +10,7 @@ export default function WelcomeScreen() {
       <Text style={styles.brand}>ScholarPath</Text>
       <Text style={styles.welcomeTitle}>Find scholarships you actually qualify for</Text>
       <Text style={styles.welcomeDescription}>
-        Match your CGPA, degree, and research goals with global funding opportunities.
+        Find scholarships and research opportunities across Pakistan that fit your academic goals.
       </Text>
       <View style={styles.welcomeActions}>
         <Button label="Create Free Profile" onPress={() => router.push(routes.account)} />
