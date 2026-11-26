@@ -54,10 +54,10 @@ function createUserController(authService) {
       };
     },
 
-    profile(request) {
+    async profile(request) {
       const authorization = request.headers.authorization ?? '';
       const match = authorization.match(/^Bearer ([a-f0-9]{64})$/);
-      const user = match ? authService.getUserForToken(match[1]) : null;
+      const user = match ? await authService.getUserForToken(match[1]) : null;
       if (!user) {
         throw new HttpError(401, 'A valid bearer token is required.');
       }

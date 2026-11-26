@@ -6,8 +6,8 @@ type AppStateValue = {
   setQuery: (value: string) => void;
   accountMode: 'create' | 'login';
   setAccountMode: (value: 'create' | 'login') => void;
-  selectedResearch: number;
-  setSelectedResearch: (value: number) => void;
+  selectedResearch: string | null;
+  setSelectedResearch: (value: string | null) => void;
   savedResearch: boolean;
   setSavedResearch: (value: boolean) => void;
   savedScholarship: boolean;
@@ -23,7 +23,7 @@ export const AppStateContext = createContext<AppStateValue | null>(null);
 export function AppStateProvider({ children }: { children: ReactNode }) {
   const [query, setQuery] = useState('');
   const [accountMode, setAccountMode] = useState<'create' | 'login'>('create');
-  const [selectedResearch, setSelectedResearch] = useState(0);
+  const [selectedResearch, setSelectedResearch] = useState<string | null>(null);
   const [savedResearch, setSavedResearch] = useState(false);
   const [savedScholarship, setSavedScholarship] = useState(false);
   const [reminders, setReminders] = useState([true, true, true]);

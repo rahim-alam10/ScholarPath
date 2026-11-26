@@ -20,7 +20,7 @@ function createAuthService(userRepository) {
   }
 
   async function authenticate(email, password) {
-    const user = userRepository.findByEmail(email);
+    const user = await userRepository.findByEmail(email);
     if (!user) {
       return null;
     }
@@ -42,7 +42,7 @@ function createAuthService(userRepository) {
     return token;
   }
 
-  function getUserForToken(token) {
+  async function getUserForToken(token) {
     const session = sessions.get(token);
     if (!session || session.expiresAt <= Date.now()) {
       if (session) {
@@ -57,7 +57,11 @@ function createAuthService(userRepository) {
 }
 
 function toPublicProfile(user) {
-  return { id: user.id, email: user.email, name: user.name };
+  return {
+    id: user.id ?? user._id.toString(),
+    email: user.email,
+    name: user.name,
+  };
 }
 
 module.exports = { createAuthService, toPublicProfile };

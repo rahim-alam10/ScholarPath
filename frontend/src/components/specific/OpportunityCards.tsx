@@ -1,6 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
-import { Button, Chip } from '../common/Controls';
-import type { ResearchProject } from '../../config/opportunities';
+import { Button } from '../common/Controls';
+import type { ResearchOpportunity } from '../../api/opportunityApi';
+import { formatDate } from '../../utils/formatDate';
 import { colors } from '../../config/theme';
 
 export function StatCard({
@@ -37,9 +38,7 @@ export function ScholarshipCard({
   return (
     <View style={[styles.card, compact && styles.compactCard]}>
       <Text style={styles.cardTitle}>{title}</Text>
-      {!compact ? <Chip label="Eligible" filled style={styles.eligibleChip} /> : null}
       <Text style={styles.mutedText}>{subtitle}</Text>
-      {compact ? <Chip label="Fully Funded · 95% match" filled style={styles.eligibleChip} /> : null}
       <Button label="View Details" onPress={onPress} />
     </View>
   );
@@ -49,17 +48,19 @@ export function ResearchCard({
   project,
   onPress,
 }: {
-  project: ResearchProject;
+  project: ResearchOpportunity;
   onPress: () => void;
 }) {
   return (
     <View style={styles.card}>
-      <Text style={styles.mutedText}>{project.university}</Text>
+      <Text style={styles.mutedText}>
+        {project.country ? `${project.institution} · ${project.country}` : project.institution}
+      </Text>
       <Text style={styles.cardTitle}>{project.title}</Text>
       <Text style={styles.topicKind}>{project.kind}</Text>
       <Text style={styles.mutedText}>{project.funding}</Text>
-      <Text style={styles.topicText}>{project.topic}</Text>
-      <Text style={styles.mutedText}>Deadline: {project.deadline}</Text>
+      <Text style={styles.topicText}>{project.topics.join(' · ')}</Text>
+      <Text style={styles.mutedText}>Deadline: {formatDate(project.deadline)}</Text>
       <Button label="View details" onPress={onPress} />
     </View>
   );
@@ -74,15 +75,10 @@ export function DetailRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-export function RequirementCard({ title, value }: { title: string; value: string }) {
+export function RequirementCard({ title }: { title: string }) {
   return (
     <View style={[styles.softCard, styles.requirementCard]}>
       <Text style={styles.detailValue}>{title}</Text>
-      <View style={styles.requirementRow}>
-        <Text style={styles.smallMuted}>Your Profile Value</Text>
-        <Text style={styles.detailValue}>{value}</Text>
-      </View>
-      <Text style={styles.matchText}>Matches Criteria</Text>
     </View>
   );
 }
@@ -106,14 +102,11 @@ const styles = StyleSheet.create({
   mutedText: { color: colors.muted, fontSize: 15, lineHeight: 22 },
   compactCard: { backgroundColor: colors.soft, borderColor: '#E0E7F1' },
   cardTitle: { color: colors.ink, fontSize: 20, lineHeight: 27, fontWeight: '700' },
-  eligibleChip: { minHeight: 28, flex: 0, alignSelf: 'flex-start', paddingHorizontal: 14, backgroundColor: colors.greenSoft, borderColor: colors.greenSoft },
   topicKind: { color: colors.blueDark, fontSize: 14, fontWeight: '600' },
   topicText: { color: colors.blue, fontSize: 14, lineHeight: 20 },
   detailRow: { flexDirection: 'row', gap: 18 },
   detailLabel: { color: colors.muted, width: 74, fontSize: 14 },
   detailValue: { color: colors.ink, fontSize: 16, lineHeight: 23, fontWeight: '500', flexShrink: 1 },
   requirementCard: { padding: 16, marginTop: 4 },
-  requirementRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  matchText: { color: colors.green, fontSize: 14, fontWeight: '600' },
   infoBlock: { gap: 3, marginTop: 4 },
 });

@@ -3,22 +3,36 @@ import { router } from 'expo-router';
 import { Button } from '../../components/common/Controls';
 import { MainLayout } from '../../components/common/ScreenLayout';
 import { ResearchCard } from '../../components/specific/OpportunityCards';
-import { researchProjects } from '../../config/opportunities';
+import { ApiStatus } from '../../components/common/ApiStatus';
+import type { ResearchOpportunity } from '../../api/opportunityApi';
+import { useApiData } from '../../hooks/useApiData';
 import { routes } from '../../navigation/routes';
 import { useAppState } from '../../hooks/useAppState';
 import { styles } from '../../theme/styles';
 
 export default function SavedResearchScreen() {
   const { savedResearch, selectedResearch } = useAppState();
+  const { data: projects, loading, error } = useApiData<ResearchOpportunity[]>('/research');
+  const project = projects?.find(
+    (item) => (item.slug ?? item.id) === selectedResearch,
+  );
   return (
     <MainLayout title="Saved research" onBack={() => router.back()}>
       <Text style={styles.heading}>Saved research</Text>
       <Text style={styles.mutedText}>Keep promising projects in one place.</Text>
+      <ApiStatus loading={loading} error={error} />
       {savedResearch ? (
-        <ResearchCard
-          project={researchProjects[selectedResearch]}
-          onPress={() => router.push({ pathname: routes.researchDetail, params: { id: String(selectedResearch) } })}
-        />
+        project ? (
+          <ResearchCard
+            project={project}
+            onPress={() => router.push({
+              pathname: routes.researchDetail,
+              params: { id: project.slug ?? project.id },
+            })}
+          />
+        ) : !loading && !error ? (
+          <Text style={styles.mutedText}>The saved research opportunity is no longer available.</Text>
+        ) : null
       ) : (
         <View style={[styles.softCard, styles.emptySaved]}>
           <Text style={styles.sectionTitle}>No research saved yet</Text>

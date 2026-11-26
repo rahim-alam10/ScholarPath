@@ -1,0 +1,22 @@
+const mongoose = require('mongoose');
+const { databaseName, mongoUri } = require('../config');
+
+async function connectDatabase() {
+  if (!mongoUri) {
+    throw new Error('MongoDB URI is not configured. Set MONGODB_URI in backend/.env.');
+  }
+  if (!/^mongodb(?:\+srv)?:\/\//.test(mongoUri)) {
+    throw new Error('MongoDB URI must use the mongodb:// or mongodb+srv:// scheme.');
+  }
+
+  await mongoose.connect(mongoUri, {
+    dbName: databaseName,
+    serverSelectionTimeoutMS: 10000,
+  });
+}
+
+async function disconnectDatabase() {
+  await mongoose.disconnect();
+}
+
+module.exports = { connectDatabase, disconnectDatabase };
