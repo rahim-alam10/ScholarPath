@@ -27,7 +27,6 @@ export type ResearchOpportunity = {
   topics: string[];
   deadline?: string;
   description?: string;
-  supervisorName?: string;
   applicationUrl?: string;
 };
 

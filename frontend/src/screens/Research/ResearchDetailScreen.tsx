@@ -48,9 +48,6 @@ export default function ResearchDetailScreen() {
               <Text style={styles.mutedText}>{project.description}</Text>
             </>
           ) : null}
-          {project.supervisorName ? (
-            <Text style={styles.mutedText}>Supervisor: {project.supervisorName}</Text>
-          ) : null}
         </>
       ) : null}
     </MainLayout>

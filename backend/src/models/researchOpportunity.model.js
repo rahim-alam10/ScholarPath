@@ -11,7 +11,6 @@ const researchOpportunitySchema = new mongoose.Schema(
     topics: [{ type: String, trim: true, maxlength: 150 }],
     deadline: { type: Date },
     description: { type: String, trim: true, maxlength: 10000 },
-    supervisorName: { type: String, trim: true, maxlength: 200 },
     applicationUrl: { type: String, trim: true, maxlength: 2048 },
   },
   { timestamps: true },

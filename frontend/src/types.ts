@@ -1,4 +1,4 @@
-export type Tab = 'Home' | 'Scholarships' | 'Research' | 'Supervisors' | 'Tracker';
+export type Tab = 'Home' | 'Scholarships' | 'Research' | 'Tracker';
 
 export type Screen =
   | 'welcome'
@@ -14,5 +14,4 @@ export type Screen =
   | 'settings'
   | 'noMatches'
   | 'connectionError'
-  | 'supervisors'
   | 'tracker';

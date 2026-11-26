@@ -4,7 +4,12 @@ const mongoose = require('mongoose');
 const { after, before, test } = require('node:test');
 const { createServer: createApiServer } = require('./src/app');
 const { createOpportunityRepository } = require('./src/repositories/opportunityRepository');
-const { scholarships: seededScholarships, researchOpportunities: seededResearch } =
+const {
+  scholarships: seededScholarships,
+  researchOpportunities: seededResearch,
+  replacedScholarshipSlugs,
+  replacedResearchSlugs,
+} =
   require('./src/data/opportunities');
 const {
   AcademicProfile,
@@ -49,9 +54,9 @@ function createTestUserRepository() {
 function createTestOpportunityRepository() {
   const scholarships = [{
     _id: { toString: () => 'scholarship-id' },
-    slug: 'hec-need-based-scholarship',
-    title: 'HEC Need-Based Scholarship Programme',
-    provider: 'Higher Education Commission of Pakistan',
+    slug: 'lums-national-outreach-programme-nop',
+    title: 'LUMS National Outreach Programme (NOP)',
+    provider: 'Lahore University of Management Sciences (LUMS)',
     country: 'Pakistan',
     funding: 'Tuition coverage and monthly stipend',
     degreeLevels: ['Undergraduate'],
@@ -60,9 +65,9 @@ function createTestOpportunityRepository() {
   }];
   const research = [{
     _id: { toString: () => 'research-id' },
-    slug: 'hec-national-research-program-universities',
-    title: 'National Research Program for Universities (NRPU)',
-    institution: 'Higher Education Commission of Pakistan',
+    slug: 'demo-urdu-learning-tools-research',
+    title: 'Demo: Urdu Learning Tools Research',
+    institution: 'ScholarPath Demo Research Lab, Lahore',
     country: 'Pakistan',
     kind: 'University research grant',
     funding: 'Competitive grant awarded to the host university',
@@ -258,6 +263,7 @@ test('Mongoose models enforce core app data constraints', () => {
 
   const research = new ResearchOpportunity({ title: 'Research project' });
   assert.ok(research.validateSync().errors.institution);
+  assert.equal(ResearchOpportunity.schema.path('supervisorName'), undefined);
 
   const internationalScholarship = new Scholarship({
     title: 'Outside Pakistan',
@@ -313,21 +319,21 @@ test('opportunity APIs return database-backed items by slug', async () => {
   const scholarships = await scholarshipList.json();
   assert.equal(scholarships.length, 1);
   assert.equal(scholarships[0].id, 'scholarship-id');
-  assert.equal(scholarships[0].slug, 'hec-need-based-scholarship');
+  assert.equal(scholarships[0].slug, 'lums-national-outreach-programme-nop');
   assert.equal(scholarships[0].country, 'Pakistan');
   assert.equal('_id' in scholarships[0], false);
 
-  const scholarshipDetail = await fetch(`${baseUrl}/scholarships/hec-need-based-scholarship`);
+  const scholarshipDetail = await fetch(`${baseUrl}/scholarships/lums-national-outreach-programme-nop`);
   assert.equal(scholarshipDetail.status, 200);
-  assert.equal((await scholarshipDetail.json()).provider, 'Higher Education Commission of Pakistan');
+  assert.equal((await scholarshipDetail.json()).provider, 'Lahore University of Management Sciences (LUMS)');
 
   const researchList = await fetch(`${baseUrl}/research`);
   assert.equal(researchList.status, 200);
   const opportunities = await researchList.json();
-  assert.equal(opportunities[0].title, 'National Research Program for Universities (NRPU)');
+  assert.equal(opportunities[0].title, 'Demo: Urdu Learning Tools Research');
   assert.equal(opportunities[0].country, 'Pakistan');
 
-  const researchDetail = await fetch(`${baseUrl}/research/hec-national-research-program-universities`);
+  const researchDetail = await fetch(`${baseUrl}/research/demo-urdu-learning-tools-research`);
   assert.equal(researchDetail.status, 200);
   assert.equal((await researchDetail.json()).country, 'Pakistan');
 
@@ -377,4 +383,14 @@ test('seeded scholarship and research records are Pakistan-based', () => {
   assert.ok([...seededScholarships, ...seededResearch].every(
     (opportunity) => opportunity.country === 'Pakistan',
   ));
+  assert.deepEqual(seededScholarships.map(({ title }) => title), [
+    'LUMS National Outreach Programme (NOP)',
+    'IBA National Talent Hunt Program (NTHP)',
+  ]);
+  assert.equal(seededResearch.length, 2);
+  assert.ok(seededResearch.every(({ title, description }) => (
+    title.startsWith('Demo:') && description.includes('fictional sample listing')
+  )));
+  assert.ok(replacedScholarshipSlugs.includes('hec-need-based-scholarship'));
+  assert.ok(replacedResearchSlugs.includes('hec-national-research-program-universities'));
 });

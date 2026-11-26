@@ -1,9 +1,11 @@
 import { env } from '../config/env';
 import { startTrackedRequest } from './requestActivity';
 
-type RequestOptions = Omit<RequestInit, 'headers'> & {
+type RequestOptions = Omit<RequestInit, 'headers' | 'signal'> & {
   headers?: Record<string, string>;
 };
+
+const requestTimeoutMs = 20_000;
 
 export class ApiError extends Error {
   constructor(message: string, readonly statusCode: number) {
@@ -18,9 +20,12 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
   }
 
   const finishRequest = startTrackedRequest();
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), requestTimeoutMs);
   try {
     const response = await fetch(new URL(path, env.apiBaseUrl), {
       ...options,
+      signal: controller.signal,
       headers: {
         Accept: 'application/json',
         'Content-Type': 'application/json',
@@ -37,7 +42,16 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
     }
 
     return await response.json() as T;
+  } catch (error) {
+    if (controller.signal.aborted) {
+      throw new ApiError(
+        'The request timed out. Check that the backend is running and reachable from your device.',
+        408,
+      );
+    }
+    throw error;
   } finally {
+    clearTimeout(timeout);
     finishRequest();
   }
 }

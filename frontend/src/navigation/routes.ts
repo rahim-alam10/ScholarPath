@@ -5,7 +5,6 @@ export const routes = {
   home: '/home',
   scholarships: '/(tabs)/scholarships',
   research: '/(tabs)/research',
-  supervisors: '/(tabs)/supervisors',
   tracker: '/(tabs)/tracker',
   scholarshipDetail: '/scholarship/[id]',
   researchDetail: '/research/[id]',

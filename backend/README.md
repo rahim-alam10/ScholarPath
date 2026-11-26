@@ -46,13 +46,16 @@ and never commit database credentials. The backend loads it automatically.
 database name.
 
 The server listens on port `3000` by default. Set `PORT` to change it. Configure
-the app's `EXPO_PUBLIC_API_URL` to the server's reachable address, such as
-`http://10.0.2.2:3000` for the Android emulator, `http://localhost:3000` for an
-iOS simulator or web browser, or `http://<computer-lan-ip>:3000` for a physical
-device on the same network. Restart Expo after changing the frontend `.env`.
+the app's `EXPO_PUBLIC_API_URL` to the server's reachable address. For the
+Android emulator, use `http://127.0.0.1:3000` and start the frontend with
+`npm run android` from `frontend`; that script sets up `adb reverse` before
+launching Expo. For an iOS simulator or web browser, use
+`http://localhost:3000`. For a physical device on the same network, use
+`http://<computer-lan-ip>:3000`. Restart Expo after changing the frontend `.env`.
 
 Seed Pakistan-focused scholarship and research programme records for the mobile
-app (safe to rerun; records are upserted by slug):
+app (safe to rerun; records are upserted by slug and the previously seeded HEC
+entries are removed):
 
 ```sh
 npm run seed

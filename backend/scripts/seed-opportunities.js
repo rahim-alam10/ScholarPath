@@ -2,7 +2,12 @@ const { connectDatabase, disconnectDatabase } = require('../src/config/database'
 const { mongoUri } = require('../src/config');
 const ResearchOpportunity = require('../src/models/researchOpportunity.model');
 const Scholarship = require('../src/models/scholarship.model');
-const { researchOpportunities, scholarships } = require('../src/data/opportunities');
+const {
+  researchOpportunities,
+  scholarships,
+  replacedScholarshipSlugs,
+  replacedResearchSlugs,
+} = require('../src/data/opportunities');
 
 async function seedCollection(Model, records) {
   await Model.init();
@@ -20,10 +25,16 @@ async function seedCollection(Model, records) {
 async function main() {
   try {
     await connectDatabase();
+    const removedScholarships = await Scholarship.deleteMany({
+      slug: { $in: replacedScholarshipSlugs },
+    });
+    const removedResearch = await ResearchOpportunity.deleteMany({
+      slug: { $in: replacedResearchSlugs },
+    });
     const scholarshipResult = await seedCollection(Scholarship, scholarships);
     const researchResult = await seedCollection(ResearchOpportunity, researchOpportunities);
     console.log(
-      `Seed complete: ${scholarshipResult.inserted} scholarships and ${researchResult.inserted} research opportunities inserted; existing seeded records updated.`,
+      `Seed complete: ${scholarshipResult.inserted} scholarships and ${researchResult.inserted} research opportunities inserted; ${removedScholarships.deletedCount} replaced scholarships and ${removedResearch.deletedCount} replaced research opportunities removed; current seeded records updated.`,
     );
   } finally {
     await disconnectDatabase();

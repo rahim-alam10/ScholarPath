@@ -10,7 +10,6 @@ const tabs = [
   { label: 'Home', glyph: '⌂', path: routes.home },
   { label: 'Scholarships', glyph: '◇', path: routes.scholarships },
   { label: 'Research', glyph: '⚗', path: routes.research },
-  { label: 'Supervisors', glyph: '♧', path: routes.supervisors },
   { label: 'Tracker', glyph: '☷', path: routes.tracker },
 ] as const;
 
