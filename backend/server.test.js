@@ -85,3 +85,15 @@ test('rejects invalid credentials and unauthenticated profile access', async () 
   const profile = await fetch(`${baseUrl}/users/me`);
   assert.equal(profile.status, 401);
 });
+
+test('rejects invalid request bodies with a client error', async () => {
+  const response = await fetch(`${baseUrl}/users/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: 'null',
+  });
+  assert.equal(response.status, 400);
+  assert.deepEqual(await response.json(), {
+    error: 'Request body must be a JSON object.',
+  });
+});

@@ -5,6 +5,18 @@ It stores account records in `backend/data/users.json`; password hashes are
 stored instead of plaintext passwords. This local JSON store is intended for
 development and a single server process, not production or multi-instance use.
 
+## Structure
+
+- `server.js` — process entry point.
+- `src/app.js` — HTTP server setup and error handling.
+- `src/routes.js` — maps HTTP methods and paths to controllers.
+- `src/controllers/` — validates requests and builds API responses.
+- `src/services/` — authentication and session behavior.
+- `src/repositories/` — persistent user data access.
+- `src/http/` — JSON request and response helpers.
+- `src/errors/` — HTTP errors with status codes.
+- `src/config.js` — shared server settings.
+
 ## Run
 
 Requires Node.js 18 or newer.
