@@ -1,6 +1,25 @@
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import {
+  Modal,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { colors } from '../../config/theme';
+
+const academicQualificationOptions = [
+  'Class 10 / O Levels',
+  'Class 11 / A Levels (First Year)',
+  'Class 12 / A Levels (Second Year)',
+  'Associate Degree',
+  'Bachelor’s (BS/BA/BSc)',
+  'Master’s (MS/MPhil/MA/MSc)',
+  'Doctoral (PhD)',
+  'Other',
+];
 
 export function Button({
   label,
@@ -93,6 +112,74 @@ export function Field({
   );
 }
 
+export function AcademicQualificationField({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const [visible, setVisible] = useState(false);
+
+  return (
+    <View style={styles.field}>
+      <Text style={styles.fieldLabel}>Current academic qualification</Text>
+      <Pressable
+        onPress={() => setVisible(true)}
+        style={[styles.input, styles.selectInput]}
+        accessibilityRole="button"
+        accessibilityLabel={`Current academic qualification: ${value || 'Select an option'}`}
+        accessibilityState={{ expanded: visible }}
+      >
+        <Text style={value ? styles.selectValue : styles.selectPlaceholder}>
+          {value || 'Select your current level'}
+        </Text>
+        <Text style={styles.selectChevron}>⌄</Text>
+      </Pressable>
+      <Modal
+        visible={visible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setVisible(false)}
+      >
+        <View style={styles.selectOverlay}>
+          <Pressable
+            style={StyleSheet.absoluteFill}
+            onPress={() => setVisible(false)}
+            accessibilityRole="button"
+            accessibilityLabel="Close qualification options"
+          />
+          <View style={styles.selectModal}>
+            <Text style={styles.selectTitle}>Select your current level</Text>
+            <ScrollView>
+              {academicQualificationOptions.map((option) => {
+                const selected = value === option;
+                return (
+                  <Pressable
+                    key={option}
+                    onPress={() => {
+                      onChange(option);
+                      setVisible(false);
+                    }}
+                    style={[styles.selectOption, selected && styles.selectOptionSelected]}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected }}
+                  >
+                    <Text style={[styles.selectOptionText, selected && styles.selectOptionTextSelected]}>
+                      {option}
+                    </Text>
+                    {selected ? <Text style={styles.selectCheck}>✓</Text> : null}
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   button: { minHeight: 52, borderRadius: 28, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 20 },
   primaryButton: { backgroundColor: colors.blue },
@@ -109,4 +196,16 @@ const styles = StyleSheet.create({
   field: { marginBottom: 18 },
   fieldLabel: { color: colors.ink, fontSize: 14, lineHeight: 20, fontWeight: '600', marginBottom: 10 },
   input: { borderWidth: 1, borderColor: colors.border, borderRadius: 12, minHeight: 55, paddingHorizontal: 15, paddingVertical: 12, color: colors.ink, fontSize: 16, backgroundColor: colors.white },
+  selectInput: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  selectValue: { color: colors.ink, fontSize: 16 },
+  selectPlaceholder: { color: colors.muted, fontSize: 16 },
+  selectChevron: { color: colors.muted, fontSize: 20, marginLeft: 12 },
+  selectOverlay: { flex: 1, justifyContent: 'center', padding: 24, backgroundColor: 'rgba(21, 29, 46, 0.45)' },
+  selectModal: { maxHeight: '80%', borderRadius: 18, padding: 20, backgroundColor: colors.white },
+  selectTitle: { color: colors.ink, fontSize: 18, lineHeight: 24, fontWeight: '700', marginBottom: 12 },
+  selectOption: { minHeight: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 12, borderRadius: 10 },
+  selectOptionSelected: { backgroundColor: colors.paleBlue },
+  selectOptionText: { color: colors.ink, fontSize: 15, flexShrink: 1 },
+  selectOptionTextSelected: { color: colors.blueDark, fontWeight: '600' },
+  selectCheck: { color: colors.blue, fontSize: 18, fontWeight: '700', marginLeft: 12 },
 });

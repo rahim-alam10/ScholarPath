@@ -1,7 +1,12 @@
 import { useState } from 'react';
-import { ScrollView, Text } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Button, Field, TextButton } from '../../components/common/Controls';
+import {
+  AcademicQualificationField,
+  Button,
+  Field,
+  TextButton,
+} from '../../components/common/Controls';
 import { PageHeader } from '../../components/common/ScreenLayout';
 import { login, register } from '../../api/userApi';
 import type { AcademicProfile as AcademicProfileInput } from '../../api/userApi';
@@ -94,18 +99,17 @@ export default function AccountScreen() {
           : 'Use at least 8 characters and include a special character (for example: !, @, or #).'}
       </Text>
       {!isLogin ? (
-        <>
-          <Field
-            label="Academic qualification"
+        <View>
+          <AcademicQualificationField
             value={qualification}
-            onChangeText={setQualification}
+            onChange={setQualification}
           />
           <Field
             label="Field of study"
             value={fieldOfStudy}
             onChangeText={setFieldOfStudy}
           />
-        </>
+        </View>
       ) : null}
       {error ? <Text accessibilityRole="alert" style={styles.formError}>{error}</Text> : null}
       <Button

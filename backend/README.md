@@ -47,8 +47,9 @@ database name.
 
 The server listens on port `3000` by default. Set `PORT` to change it. Configure
 the app's `EXPO_PUBLIC_API_URL` to the server's reachable address, such as
-`http://localhost:3000` for a simulator or `http://<computer-lan-ip>:3000` for a
-physical device.
+`http://10.0.2.2:3000` for the Android emulator, `http://localhost:3000` for an
+iOS simulator or web browser, or `http://<computer-lan-ip>:3000` for a physical
+device on the same network. Restart Expo after changing the frontend `.env`.
 
 Seed Pakistan-focused scholarship and research programme records for the mobile
 app (safe to rerun; records are upserted by slug):

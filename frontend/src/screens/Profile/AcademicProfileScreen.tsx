@@ -1,7 +1,11 @@
 import { useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Button, Field } from '../../components/common/Controls';
+import {
+  AcademicQualificationField,
+  Button,
+  Field,
+} from '../../components/common/Controls';
 import { PageHeader } from '../../components/common/ScreenLayout';
 import { useAppState } from '../../hooks/useAppState';
 import type { ProfileData } from '../../state/AppState';
@@ -70,10 +74,9 @@ export default function AcademicProfileScreen() {
           keyboardType="email-address"
           onChangeText={(value) => updateField('email', value)}
         />
-        <Field
-          label="Academic qualification"
+        <AcademicQualificationField
           value={draft.qualification}
-          onChangeText={(value) => updateField('qualification', value)}
+          onChange={(value) => updateField('qualification', value)}
         />
         <Field
           label="Field of study"
