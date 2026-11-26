@@ -57,21 +57,23 @@ export function Chip({
 export function Field({
   label,
   value,
+  onChangeText,
   secureTextEntry = false,
   keyboardType,
 }: {
   label: string;
   value: string;
+  onChangeText?: (value: string) => void;
   secureTextEntry?: boolean;
-  keyboardType?: 'email-address';
+  keyboardType?: 'email-address' | 'numeric';
 }) {
   const [text, setText] = useState(value);
   return (
     <View style={styles.field}>
       <Text style={styles.fieldLabel}>{label}</Text>
       <TextInput
-        value={text}
-        onChangeText={setText}
+        value={onChangeText ? value : text}
+        onChangeText={onChangeText ?? setText}
         secureTextEntry={secureTextEntry}
         keyboardType={keyboardType}
         autoCapitalize={keyboardType === 'email-address' ? 'none' : 'sentences'}

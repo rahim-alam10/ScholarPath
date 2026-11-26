@@ -4,6 +4,7 @@ import { router, usePathname } from 'expo-router';
 import type { Href } from 'expo-router';
 import { colors } from '../../config/theme';
 import { routes } from '../../navigation/routes';
+import { useAppState } from '../../hooks/useAppState';
 
 const tabs = [
   { label: 'Home', glyph: '⌂', path: routes.home },
@@ -26,6 +27,13 @@ export function MainLayout({
 }) {
   const pathname = usePathname();
   const showTabs = pathname !== '/' && pathname !== '/account' && pathname !== '/academic-profile';
+  const { profile } = useAppState();
+  const initials = profile.fullName
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? '')
+    .join('');
 
   return (
     <View style={styles.fill}>
@@ -44,7 +52,7 @@ export function MainLayout({
           accessibilityRole="button"
           accessibilityLabel="Open profile"
         >
-          <Text style={styles.avatarText}>AM</Text>
+          <Text style={styles.avatarText}>{initials || '?'}</Text>
         </Pressable>
       </View>
       <ScrollView
